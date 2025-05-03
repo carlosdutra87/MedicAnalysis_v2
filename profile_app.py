@@ -1,5 +1,6 @@
 # profile_app_snakeviz.py
 import cProfile
+import pstats
 from main import Application
 from tkinter import Tk
 
@@ -16,5 +17,11 @@ pr.enable()
 run_app()
 pr.disable()
 
-# Salva em formato .prof (compatível com SnakeViz)
+# Salva o perfil em formato .prof (para SnakeViz)
 pr.dump_stats("profile_output.prof")
+
+# Também salva em formato .txt legível
+with open("profile_output.txt", "w") as f:
+    ps = pstats.Stats(pr, stream=f)
+    ps.sort_stats("cumulative")  # ou 'time', 'calls', etc.
+    ps.print_stats()

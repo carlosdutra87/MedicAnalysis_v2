@@ -16,6 +16,7 @@ import tifffile
 from tkinter import messagebox
 import matplotlib.text as text
 from pprint import pprint
+from cython_kernels.kernels import fast_mean_pixels, fast_temporal_average, normalize_stack
 
 class ImageViewer(ttk.Frame):
     # Initialize the ImageViewer class with the given parameters.
@@ -291,44 +292,81 @@ class ImageViewer(ttk.Frame):
         self.update_ROI_visibility_list()
         self.show_tags_var.set(False)
 
-    def load_image(self, image_path): # Load the image from the given path
-        self.original_image = tifffile.imread(image_path)
-        image_width, image_height = self.original_image[0,0].shape
+    # def load_image(self, image_path): # Load the image from the given path
+    #     self.original_image = tifffile.imread(image_path)
+    #     image_width, image_height = self.original_image[0,0].shape
         
-        red_images = np.copy(self.original_image[1]) 
-        green_images = np.copy(self.original_image[0])
+    #     red_images = np.copy(self.original_image[1]) 
+    #     green_images = np.copy(self.original_image[0])
         
-        self.placeholder_image = Image.new("RGB", (image_width, image_height), "lightgray")
-        self.placeholder_photo = ImageTk.PhotoImage(self.placeholder_image)
+    #     self.placeholder_image = Image.new("RGB", (image_width, image_height), "lightgray")
+    #     self.placeholder_photo = ImageTk.PhotoImage(self.placeholder_image)
    
-        self.image_container = tk.Frame(self, width=image_width, height=image_height)
-        self.image_container.pack(side=tk.TOP, fill=tk.BOTH, expand=True) 
+    #     self.image_container = tk.Frame(self, width=image_width, height=image_height)
+    #     self.image_container.pack(side=tk.TOP, fill=tk.BOTH, expand=True) 
         
-        min_value_red = np.percentile(red_images[0],0.1) 
-        max_value_red = np.percentile(red_images[0],99.8)
-        self.normalized_image_array_red = (255*np.clip(red_images,min_value_red,max_value_red)/(max_value_red- min_value_red)).astype(np.uint8) 
+    #     min_value_red = np.percentile(red_images[0],0.1) 
+    #     max_value_red = np.percentile(red_images[0],99.8)
+    #     self.normalized_image_array_red = (255*np.clip(red_images,min_value_red,max_value_red)/(max_value_red- min_value_red)).astype(np.uint8) 
         
-        del red_images
-        min_value_green = np.percentile(green_images[0],0.1)
-        max_value_green = np.percentile(green_images[0],99.8)
-        self.normalized_image_array_green = (255*np.clip(green_images,min_value_green,max_value_green)/(max_value_green- min_value_green)).astype(np.uint8) 
+    #     del red_images
+    #     min_value_green = np.percentile(green_images[0],0.1)
+    #     max_value_green = np.percentile(green_images[0],99.8)
+    #     self.normalized_image_array_green = (255*np.clip(green_images,min_value_green,max_value_green)/(max_value_green- min_value_green)).astype(np.uint8) 
         
-        if np.mean(green_images[0])>2**15: # Check if the image is inverted
-            self.normalized_image_array_green = 255- self.normalized_image_array_green
-            self.normalized_image_array_red = 255- self.normalized_image_array_red
+    #     if np.mean(green_images[0])>2**15: # Check if the image is inverted
+    #         self.normalized_image_array_green = 255- self.normalized_image_array_green
+    #         self.normalized_image_array_red = 255- self.normalized_image_array_red
+    #         self.is_image_black = False
+
+    #     del green_images
+
+    #     self.canaux = {0: np.copy(self.normalized_image_array_green),
+    #                     1: np.copy(self.normalized_image_array_red)}
+        
+    #     self.image_display = self.axis.imshow(self.canaux[self.selected_channel][self.current_index], cmap=self.color_mode)
+        
+    #     self.image_display = self.axis.imshow(self.normalized_image_array_red[self.current_index], cmap='gray')
+    #     ax_slider = self.figure.add_axes([0.2, 0.05, 0.65, 0.03])
+    #     self.slider = Slider(ax_slider, 'Image', 0, self.canaux[1].shape[0]-1, valinit=0)
+    #     print(self.canaux[1].shape[0])
+    #     self.slider.on_changed(self.update_image)
+
+    def load_image(self, image_path):
+        self.original_image = tifffile.imread(image_path)
+        image_width, image_height = self.original_image[0, 0].shape
+
+        green_stack = self.original_image[0]
+        red_stack = self.original_image[1]
+
+        green_u16 = green_stack.astype(np.uint16)
+        red_u16   = red_stack.astype(np.uint16)
+
+        self.normalized_image_array_green = normalize_stack(green_u16, 0.1, 99.8)
+        self.normalized_image_array_red   = normalize_stack(red_u16,   0.1, 99.8)
+
+        if np.mean(green_stack[0]) > 2**15:
+            self.normalized_image_array_green = 255 - self.normalized_image_array_green
+            self.normalized_image_array_red = 255 - self.normalized_image_array_red
             self.is_image_black = False
 
-        del green_images
+        self.placeholder_image = Image.new("RGB", (image_width, image_height), "lightgray")
+        self.placeholder_photo = ImageTk.PhotoImage(self.placeholder_image)
+        self.image_container = tk.Frame(self, width=image_width, height=image_height)
+        self.image_container.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
-        self.canaux = {0: np.copy(self.normalized_image_array_green),
-                        1: np.copy(self.normalized_image_array_red)}
-        
-        self.image_display = self.axis.imshow(self.canaux[self.selected_channel][self.current_index], cmap=self.color_mode)
-        
-        self.image_display = self.axis.imshow(self.normalized_image_array_red[self.current_index], cmap='gray')
+        self.canaux = {
+            0: self.normalized_image_array_green,
+            1: self.normalized_image_array_red
+        }
+
+        self.image_display = self.axis.imshow(
+            self.canaux[self.selected_channel][self.current_index],
+            cmap=self.color_mode
+        )
+
         ax_slider = self.figure.add_axes([0.2, 0.05, 0.65, 0.03])
-        self.slider = Slider(ax_slider, 'Image', 0, self.canaux[1].shape[0]-1, valinit=0)
-        print(self.canaux[1].shape[0])
+        self.slider = Slider(ax_slider, 'Image', 0, self.canaux[1].shape[0] - 1, valinit=0)
         self.slider.on_changed(self.update_image)
 
     def update_image(self,value = None): # Update the image display
@@ -402,15 +440,27 @@ class ImageViewer(ttk.Frame):
         self.temporal_averaging()
         self.update_displayed_image() 
 
-    def temporal_averaging(self): # Apply temporal averaging to the images
-        nb_images = self.canaux[1].shape[0]
-        for i in range(nb_images-self.window_size+1):
-            self.normalized_image_array_green[i] = np.mean(self.normalized_image_array_green[i:i+self.window_size,:,:], axis = 0)
-            self.normalized_image_array_red[i] = np.mean(self.normalized_image_array_red[i:i+self.window_size,:,:], axis = 0)
-        self.canaux = {0: np.copy(self.normalized_image_array_green),
-                        1: np.copy(self.normalized_image_array_red)}
-       
-            
+    # def temporal_averaging(self): # Apply temporal averaging to the images
+    #     nb_images = self.canaux[1].shape[0]
+    #     for i in range(nb_images-self.window_size+1):
+    #         self.normalized_image_array_green[i] = np.mean(self.normalized_image_array_green[i:i+self.window_size,:,:], axis = 0)
+    #         self.normalized_image_array_red[i] = np.mean(self.normalized_image_array_red[i:i+self.window_size,:,:], axis = 0)
+    #     self.canaux = {0: np.copy(self.normalized_image_array_green),
+    #                     1: np.copy(self.normalized_image_array_red)}
+
+    def temporal_averaging(self):
+        window = self.window_size
+        stack_g = self.normalized_image_array_green   # uint8[T,H,W]
+        stack_r = self.normalized_image_array_red     # uint8[T,H,W]
+
+        out_g = fast_temporal_average(stack_g, window)
+        out_r = fast_temporal_average(stack_r, window)
+
+        # copy back into your structures
+        self.normalized_image_array_green[:out_g.shape[0]] = out_g
+        self.normalized_image_array_red[:out_r.shape[0]] = out_r
+        self.canaux = {0: out_g.copy(), 1: out_r.copy()}
+
     def update_threshold(self, *args): # Update the threshold values
         self.threshold_min = round(self.threshold_min_slider.get())  
         self.threshold_max = round(self.threshold_max_slider.get())  
@@ -736,23 +786,39 @@ class ImageViewer(ttk.Frame):
         out = out / len(self.x_in)
         return out
     
-    def mean_over_time(self): # Calculate the mean over time for the region of interest
-        try:
-            mean_values = [[],[]]
-            images = self.original_image
+    # def mean_over_time(self): # Calculate the mean over time for the region of interest
+    #     try:
+    #         mean_values = [[],[]]
+    #         images = self.original_image
 
-            for i in range(len(images[0])):
-                mean_value_green = 2**16-self.mean(images[0][i])
-                mean_value_red = 2**16-self.mean(images[1][i])
-                mean_values[0].append(mean_value_green)
-                mean_values[1].append(mean_value_red)
+    #         for i in range(len(images[0])):
+    #             mean_value_green = 2**16-self.mean(images[0][i])
+    #             mean_value_red = 2**16-self.mean(images[1][i])
+    #             mean_values[0].append(mean_value_green)
+    #             mean_values[1].append(mean_value_red)
 
-            return mean_values
+    #         return mean_values
 
-        except Exception as e:
-            print("Error calculating mean over time:", e)
-            return None
-    
+    #     except Exception as e:
+    #         print("Error calculating mean over time:", e)
+    #         return None
+
+    def mean_over_time(self):
+        images = self.original_image  # shape (2, T, H, W)
+        xs = np.array(self.x_in, dtype=np.int32)
+        ys = np.array(self.y_in, dtype=np.int32)
+        T = images.shape[1]
+        mean_values = [[], []]
+
+        for channel in (0, 1):
+            arr = images[channel]
+            for i in range(T):
+                # 2**16 - mean  — igual ao Python original
+                image_uint16 = arr[i].astype(np.uint16)
+                m = 2**16 - fast_mean_pixels(image_uint16, xs, ys)
+                mean_values[channel].append(m)
+        return mean_values
+
     def toggle_ROI_visibility(self, index, visibility): # Toggle the visibility of the region of interest
         self.ROI_objects[index]['seg'][0].set_visible(visibility)
         if self.show_tags_var.get():
