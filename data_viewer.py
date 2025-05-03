@@ -5,6 +5,7 @@ from tkinter import ttk, filedialog, messagebox, StringVar, Toplevel
 import csv
 import os
 import matplotlib.pyplot as plt 
+import math
 
 class DataViewer(ttk.Frame):
     def __init__(self, master, GUI=None):
@@ -44,7 +45,7 @@ class DataViewer(ttk.Frame):
         button_container.pack(side=tk.TOP, pady=10)
 
         self.selected_ROI_var = StringVar() # Variable to store the selected ROI
-        self.ROI_combobox = ttk.Combobox(button_container, textvariable=self.selected_ROI_var) # Combobox to display the ROIs
+        self.ROI_combobox = ttk.Combobox(button_container, textvariable=self.selected_ROI_var, state="disabled") # Combobox to display the ROIs
         self.ROI_combobox.pack(side=tk.LEFT, padx=10)
         self.ROI_combobox.bind("<<ComboboxSelected>>", self.handle_combobox_selection)
 
@@ -70,14 +71,18 @@ class DataViewer(ttk.Frame):
         self.save_button.config(state='disabled')
         self.ROI_combobox.config(state='disabled')
     
+
     def enable_functionalities_post_load(self): # Enable functionalities after loading data
-        self.prev_button.config(state='normal')
-        self.next_button.config(state='normal')
         self.load_button.config(state='normal')
-        self.save_button.config(state='normal')
-        self.ROI_combobox.config(state='readonly')
 
     def process_segment_data(self, segment_data): # Process the segment data and display it in the treeview widget
+
+        if 'disabled' in self.save_button.state():
+            self.save_button.config(state='normal')
+
+        if 'disabled' in self.ROI_combobox.state():
+            self.ROI_combobox.state(['!disabled', 'readonly'])
+
         segment_x_array = segment_data['segment_x_array']
         segment_y_array = segment_data['segment_y_array']
         mean_values_green = segment_data['mean_values'][0]
@@ -90,6 +95,12 @@ class DataViewer(ttk.Frame):
         else:
             self.selected_ROI_index = max(self.ROI_data.keys()) + 1
 
+        if 'disabled' in self.prev_button.state():
+            self.prev_button.config(state='normal')
+
+        if 'disabled' in self.next_button.state():
+            self.next_button.config(state='normal')
+
         self.ROI_data[self.selected_ROI_index] = {
             'coord': coordinates, 
             'means': {
@@ -98,7 +109,7 @@ class DataViewer(ttk.Frame):
                 }
             }    
 
-        self.total_pages[self.selected_ROI_index] = (len(self.ROI_data[self.selected_ROI_index]['means'][1]) / self.page_size) + 1 
+        self.total_pages[self.selected_ROI_index] = math.ceil(len(self.ROI_data[self.selected_ROI_index]['means'][1][0]) / self.page_size)
         self.current_page[self.selected_ROI_index] = 0 
 
         self.update_ROI_combobox()
@@ -124,21 +135,55 @@ class DataViewer(ttk.Frame):
         self.data_tree_clean_rebuild()
         self.display_data()
 
-    def display_data(self): # Display the data in the treeview widget for the selected ROI
-        self.selected_ROI_index = int(self.selected_ROI_var.get())
-        self.update_ROI_combobox()
+    # def display_data(self): # Display the data in the treeview widget for the selected ROI
+    #     self.selected_ROI_index = int(self.selected_ROI_var.get())
+    #     self.update_ROI_combobox()
+
+    #     start_row = self.current_page[self.selected_ROI_index] * self.page_size
+    #     end_row = start_row + self.page_size
+
+    #     mean_values_green = self.ROI_data[self.selected_ROI_index]['means'][0]
+    #     mean_values_red = self.ROI_data[self.selected_ROI_index]['means'][1]
+
+    #     mean_intensities_green = mean_values_green[start_row:end_row]
+    #     mean_intensities_red = mean_values_red[start_row:end_row]   
+
+    #     # for i, (index, mean_intensity_green, mean_intensity_red) in enumerate(zip(range(start_row, end_row), mean_intensities_green[1], mean_intensities_red[1]), start=start_row + 1):
+    #     #     self.tree.insert('', 'end', values=[index, round(mean_intensity_green, 2), round(mean_intensity_red, 2)])
+
+    #     # Antes de inserir os novos dados, limpe a Treeview:
+    #     self.tree.delete(*self.tree.get_children())
+
+    #     # Agora itere sobre os dados da fatia usando as listas completas:
+    #     for index, mean_intensity_green, mean_intensity_red in zip(range(start_row, end_row), mean_intensities_green, mean_intensities_red):
+    #         self.tree.insert('', 'end', values=[index, round(mean_intensity_green, 2), round(mean_intensity_red, 2)])
+
+    def display_data(self):  # Display the data in the treeview widget for the selected ROI
+        try:
+            self.selected_ROI_index = int(self.selected_ROI_var.get())
+        except ValueError:
+            print("ROI selecionada inválida.")
+            return
 
         start_row = self.current_page[self.selected_ROI_index] * self.page_size
         end_row = start_row + self.page_size
 
-        mean_values_green = self.ROI_data[self.selected_ROI_index]['means'][0]
-        mean_values_red = self.ROI_data[self.selected_ROI_index]['means'][1]
+        # Aqui, extraímos a lista de índices e a lista de valores para cada canal
+        indices_green = self.ROI_data[self.selected_ROI_index]['means'][0][0]
+        mean_values_green = self.ROI_data[self.selected_ROI_index]['means'][0][1]
+        indices_red = self.ROI_data[self.selected_ROI_index]['means'][1][0]
+        mean_values_red = self.ROI_data[self.selected_ROI_index]['means'][1][1]
 
-        mean_intensities_green = mean_values_green[start_row:end_row]
-        mean_intensities_red = mean_values_red[start_row:end_row]   
+        # Faz a fatia para a página atual
+        indices_slice = indices_green[start_row:end_row]
+        green_slice = mean_values_green[start_row:end_row]
+        red_slice = mean_values_red[start_row:end_row]
 
-        for i, (index, mean_intensity_green, mean_intensity_red) in enumerate(zip(range(start_row, end_row), mean_intensities_green[1], mean_intensities_red[1]), start=start_row + 1):
-            self.tree.insert('', 'end', values=[index, round(mean_intensity_green, 2), round(mean_intensity_red, 2)])
+        # Limpa a treeview antes de inserir novos dados
+        self.tree.delete(*self.tree.get_children())
+
+        for index, mg, mr in zip(indices_slice, green_slice, red_slice):
+            self.tree.insert('', 'end', values=[index, round(mg, 2), round(mr, 2)])
 
     def save_as_csv(self): # Save the data as a CSV file
         project_path = self.get_project_path()

@@ -57,9 +57,12 @@ class GraphViewer(tk.Frame):
 
     def disable_functionalities_pre_load(self): # Disable functionalities before loading the image
         self.compare_button.config(state="disabled")
+        self.display_green_checkbox.config(state="disabled")
+        self.display_red_checkbox.config(state="disabled")
 
-    def enable_functionalities_post_load(self): # Enable functionalities after loading the image
-        self.compare_button.config(state="normal")
+    #def enable_functionalities_post_load(self): # Enable functionalities after loading the image
+        #self.compare_button.config(state="normal")
+        
 
     def compare_ROIs(self): # Function for comparing ROIs
         if len(self.ROI_data) < 2:
@@ -99,7 +102,7 @@ class GraphViewer(tk.Frame):
             ax.legend()
             plt.show()
 
-        def add_combobox(): # Add a combobox for selecting an ROI to compare 
+        def add_combobox(): # Add a combobox for selecting a ROI to compare 
             if len(comboboxes) < len(self.ROI_data):
                 combobox = ttk.Combobox(compare_window, values=list(self.ROI_data.keys()), state="readonly")
                 combobox.grid(row=len(comboboxes), column=0, padx=5, pady=5)
@@ -154,8 +157,22 @@ class GraphViewer(tk.Frame):
             
         if display_red:
             self.process_to_graph(channel=1)
+        
+        # if self.display_green_var.get == True and self.display_red_var.get == True:
 
-    def process_to_graph(self, channel=0): # Process the data to be displayed on the graph
+    def process_to_graph(self, channel=0):  # Process the data to be displayed on the graph
+        if 'disabled' in self.compare_button.state() and self.selected_ROI_index == 2:
+            self.compare_button.config(state='normal')
+
+        if self.display_red_checkbox.cget("state") == "disabled":
+            self.display_red_checkbox.config(state="normal")
+            self.display_red_var.set(True)  
+
+        if self.display_green_checkbox.cget("state") == "disabled":
+            self.display_green_checkbox.config(state="normal")
+            self.display_green_var.set(True)
+                     
+
         if self.axis is None:
             self.axis = self.figure.add_subplot(111)
 
@@ -170,23 +187,37 @@ class GraphViewer(tk.Frame):
         try:
             y_data = self.ROI_data[self.selected_ROI_index]['means'][channel][1]
             x_data = self.ROI_data[self.selected_ROI_index]['means'][channel][0]
+
+            # Convert to floats (in case they aren't already)
             x_data = [float(x) for x in x_data]
             y_data = [float(y) for y in y_data]
+
+            if not x_data or not y_data:
+                print("Warning: x_data or y_data is empty.")
+                return
 
             if channel == 0:
                 selected_color = 'green'
             else:
                 selected_color = 'red'
 
+            # Plot the curve
             self.axis.plot(x_data, y_data, color=selected_color, linestyle='-', label=f'ROI {self.selected_ROI_index}')
 
+            # Update labels
             self.axis.set_xlabel('Index')
             self.axis.set_ylabel('Mean Intensity')
-            self.axis.set_title('Graph Viewer')
+            # self.axis.set_title('Graph Viewer')
+            # Auto-scale Y axis based on data range, with padding
+            y_min = min(y_data)
+            y_max = max(y_data)
+            y_padding = (y_max - y_min) * 0.1 if (y_max - y_min) != 0 else 10  # Avoid zero division
 
-            self.axis.set_xlim([0, len(x_data)]) 
-            self.axis.set_ylim([1000, 1500]) 
+            self.axis.set_xlim([min(x_data), max(x_data)])
+            self.axis.set_ylim([y_min - y_padding, y_max + y_padding])
 
+            self.axis.legend()
             self.canvas.draw()
+
         except Exception as e:
             print(f"Error: Unable to process data: {e}")

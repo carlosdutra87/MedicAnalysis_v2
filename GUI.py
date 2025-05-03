@@ -24,6 +24,7 @@ class GUI(tk.Toplevel):
         self.configure(bg='white')
         
         self.image_viewer = None
+        self.data_viewer = None
         
         self.main_container = tk.PanedWindow(self, orient=tk.HORIZONTAL, sashwidth=5, sashrelief=tk.SUNKEN) # Main container for the different components of the software
         self.main_container.pack(side=tk.TOP, fill=tk.BOTH, expand=True) 
@@ -35,15 +36,15 @@ class GUI(tk.Toplevel):
         
         file_explorer_frame = FileViewer( self.main_container, image_viewer=self.image_viewer) # File explorer component for browsing files
         self.main_container.add(file_explorer_frame, minsize=100)  
-    
-        self.image_viewer = ImageViewer( self.main_container,self) # Image viewer component for displaying images
-        self.main_container.add(self.image_viewer, minsize=200)  
-        self.image_viewer.disable_functionalities_pre_load()
 
         self.data_graph_frame = tk.PanedWindow( self.main_container, orient=tk.VERTICAL, sashwidth=8, sashrelief=tk.SUNKEN) # Data and graph viewer components
         self.main_container.add(self.data_graph_frame, minsize=200) 
 
         self.data_viewer = DataViewer(self.data_graph_frame, self) # Data viewer component for displaying data
+        self.image_viewer = ImageViewer( self.main_container,self) # Image viewer component for displaying images
+        self.main_container.add(self.image_viewer, minsize=200)  
+        self.image_viewer.disable_functionalities_pre_load()
+
         self.image_viewer.set_data_viewer(self.data_viewer)
         self.data_graph_frame.add(self.data_viewer, minsize=200)  
         self.data_viewer.disable_functionalities_pre_load()
@@ -122,7 +123,7 @@ class GUI(tk.Toplevel):
     def enable_functionalities_post_load(self): # Enable functionalities after loading an image
         self.image_viewer.enable_functionalities_post_load()
         self.data_viewer.enable_functionalities_post_load()
-        self.graph_viewer.enable_functionalities_post_load()
+        #self.graph_viewer.enable_functionalities_post_load()
         self.menubar.entryconfig("File", state="normal")
 
     def get_project_path(self): # Get the path of the project
