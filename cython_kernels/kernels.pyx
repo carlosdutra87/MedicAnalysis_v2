@@ -1,8 +1,8 @@
 # cython_kernels/kernels.pyx
 # cython: boundscheck=False, wraparound=False, nonecheck=False
 
-import numpy as np              # para chamadas Python‑level (empty)
-cimport numpy as cnp            # para declarações de tipos (memoryviews)
+import numpy as np           
+cimport numpy as cnp            
 from libc.stdint cimport uint8_t, uint16_t
 from cython cimport double
 
@@ -28,7 +28,6 @@ cpdef cnp.ndarray[cnp.uint8_t, ndim=3] fast_temporal_average(
     Apply a moving‐average of length `window` over stack[T,H,W] uint8,
     returning a new uint8 array of shape (T-window+1, H, W).
     """
-    # variáveis C no topo :contentReference[oaicite:1]{index=1}
     cdef int T = stack.shape[0]
     cdef int H = stack.shape[1]
     cdef int W = stack.shape[2]
