@@ -1,4 +1,4 @@
-         11202292 function calls (10803815 primitive calls) in 198.083 seconds
+11202292 function calls (10803815 primitive calls) in 198.083 seconds
 
    Ordered by: cumulative time
 

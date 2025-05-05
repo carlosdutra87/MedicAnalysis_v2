@@ -456,7 +456,6 @@ class ImageViewer(ttk.Frame):
         out_g = fast_temporal_average(stack_g, window)
         out_r = fast_temporal_average(stack_r, window)
 
-        # copy back into your structures
         self.normalized_image_array_green[:out_g.shape[0]] = out_g
         self.normalized_image_array_red[:out_r.shape[0]] = out_r
         self.canaux = {0: out_g.copy(), 1: out_r.copy()}
@@ -813,7 +812,6 @@ class ImageViewer(ttk.Frame):
         for channel in (0, 1):
             arr = images[channel]
             for i in range(T):
-                # 2**16 - mean  — igual ao Python original
                 image_uint16 = arr[i].astype(np.uint16)
                 m = 2**16 - fast_mean_pixels(image_uint16, xs, ys)
                 mean_values[channel].append(m)

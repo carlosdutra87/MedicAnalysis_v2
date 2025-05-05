@@ -19,5 +19,5 @@ pr.dump_stats("profile_output.prof")
 
 with open("profile_output.txt", "w") as f:
     ps = pstats.Stats(pr, stream=f)
-    ps.sort_stats("cumulative")
+    ps.sort_stats("cumulative") 
     ps.print_stats()
