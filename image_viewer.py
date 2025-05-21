@@ -16,7 +16,7 @@ import tifffile
 from tkinter import messagebox
 import matplotlib.text as text
 from pprint import pprint
-from cython_kernels.kernels import fast_mean_pixels, fast_temporal_average, normalize_stack
+from cython_kernels.kernels import fast_mean_pixels, fast_temporal_average, normalize_stack, fast_apply_ctbv
 
 class ImageViewer(ttk.Frame):
     # Initialize the ImageViewer class with the given parameters.
@@ -44,6 +44,8 @@ class ImageViewer(ttk.Frame):
         self.panning_mode_enabled = False
         self.panning_start_x = None
         self.panning_start_y = None
+
+        self._last_render_state = {'index': None, 'channel': None}
         
         # Add a variable to track whether the user is currently zooming
         self.zooming = False
@@ -272,17 +274,33 @@ class ImageViewer(ttk.Frame):
     def set_graph_viewer(self, graph_viewer): # Set the graph viewer
         self.graph_viewer = graph_viewer
 
-    def save_parameters(self): # Save the parameters to all images
+    # def save_parameters(self): # Save the parameters to all images
         
+    #     self.save_button.config(relief=SUNKEN)
+    #     if self.selected_channel == 0:
+    #         self.canaux[0] = np.clip(self.normalized_image_array_green * (1.0 + self.contrast_value)+ self.brightness_value, 0, 255).astype(np.uint8)
+    #         self.canaux[0][self.normalized_image_array_green<self.threshold_min] = 0
+    #         self.canaux[0][self.normalized_image_array_green>self.threshold_max] = 255
+    #     elif self.selected_channel == 1:
+    #         self.canaux[1] = np.clip(self.normalized_image_array_red * (1.0 + self.contrast_value)+ self.brightness_value, 0, 255).astype(np.uint8)
+    #         self.canaux[1][self.normalized_image_array_red<self.threshold_min] = 0
+    #         self.canaux[1][self.normalized_image_array_red>self.threshold_max] = 255
+    #     self.save_button.config(relief=RAISED)
+
+    def save_parameters(self):
         self.save_button.config(relief=SUNKEN)
-        if self.selected_channel == 0:
-            self.canaux[0] = np.clip(self.normalized_image_array_green * (1.0 + self.contrast_value)+ self.brightness_value, 0, 255).astype(np.uint8)
-            self.canaux[0][self.normalized_image_array_green<self.threshold_min] = 0
-            self.canaux[0][self.normalized_image_array_green>self.threshold_max] = 255
-        elif self.selected_channel == 1:
-            self.canaux[1] = np.clip(self.normalized_image_array_red * (1.0 + self.contrast_value)+ self.brightness_value, 0, 255).astype(np.uint8)
-            self.canaux[1][self.normalized_image_array_red<self.threshold_min] = 0
-            self.canaux[1][self.normalized_image_array_red>self.threshold_max] = 255
+        for ch in (0, 1):
+            arr = self.normalized_image_array_red if ch == 1 else self.normalized_image_array_green
+            out_stack = np.empty_like(arr)
+            for i in range(arr.shape[0]):
+                out_stack[i] = fast_apply_ctbv(
+                    arr[i].copy(),
+                    self.contrast_value,
+                    self.brightness_value,
+                    self.threshold_min,
+                    self.threshold_max,
+                )
+            self.canaux[ch] = out_stack
         self.save_button.config(relief=RAISED)
 
     def clean_display_seg(self): # Clear the segmentations from the display for new data
@@ -390,15 +408,27 @@ class ImageViewer(ttk.Frame):
         self.update_displayed_image()
         self.update_parameters_label()
 
-    def contrast_brightness_threshold(self): # Apply contrast, brightness, and threshold adjustments
-        if self.selected_channel == 0:
-            self.canaux[0][self.current_index] = np.clip(self.normalized_image_array_green[self.current_index] * (1.0 + self.contrast_value)+ self.brightness_value, 0, 255).astype(np.uint8)  # Normalize to [0, 1]
-            self.canaux[0][self.current_index][self.normalized_image_array_green[self.current_index]<self.threshold_min] = 0
-            self.canaux[0][self.current_index][self.normalized_image_array_green[self.current_index]>self.threshold_max] = 255
-        elif self.selected_channel == 1:
-            self.canaux[1][self.current_index] = np.clip(self.normalized_image_array_red[self.current_index] * (1.0 + self.contrast_value)+ self.brightness_value, 0, 255).astype(np.uint8)  # Normalize to [0, 1]
-            self.canaux[1][self.current_index][self.normalized_image_array_red[self.current_index]<self.threshold_min] = 0
-            self.canaux[1][self.current_index][self.normalized_image_array_red[self.current_index]>self.threshold_max] = 255
+    # def contrast_brightness_threshold(self): # Apply contrast, brightness, and threshold adjustments
+    #     if self.selected_channel == 0:
+    #         self.canaux[0][self.current_index] = np.clip(self.normalized_image_array_green[self.current_index] * (1.0 + self.contrast_value)+ self.brightness_value, 0, 255).astype(np.uint8)  # Normalize to [0, 1]
+    #         self.canaux[0][self.current_index][self.normalized_image_array_green[self.current_index]<self.threshold_min] = 0
+    #         self.canaux[0][self.current_index][self.normalized_image_array_green[self.current_index]>self.threshold_max] = 255
+    #     elif self.selected_channel == 1:
+    #         self.canaux[1][self.current_index] = np.clip(self.normalized_image_array_red[self.current_index] * (1.0 + self.contrast_value)+ self.brightness_value, 0, 255).astype(np.uint8)  # Normalize to [0, 1]
+    #         self.canaux[1][self.current_index][self.normalized_image_array_red[self.current_index]<self.threshold_min] = 0
+    #         self.canaux[1][self.current_index][self.normalized_image_array_red[self.current_index]>self.threshold_max] = 255
+
+    def contrast_brightness_threshold(self):
+        frame = self.canaux[self.selected_channel][self.current_index]
+        # apply all adjustments in C
+        self.canaux[self.selected_channel][self.current_index] = fast_apply_ctbv(
+            frame.copy(),
+            self.contrast_value,
+            self.brightness_value,
+            self.threshold_min,
+            self.threshold_max,
+        )
+
     
     def update_brightness(self, *args): # Update the brightness value
         self.brightness_value = round(self.brightness_slider.get(), 2)  # Round to two decimal places
@@ -481,15 +511,38 @@ class ImageViewer(ttk.Frame):
         parameters_text = f"Contrast: {self.contrast_value}\nBrightness: {self.brightness_value}\nThreshold Min: {self.threshold_min}\nThreshold Max: {self.threshold_max}  "
         self.parameters_label.config(text=parameters_text)
     
-    def update_displayed_image(self): # Update the displayed image with the current parameters
-        if self.is_green_button:
-            self.axis.imshow(self.canaux[0][self.current_index], cmap=self.color_mode)
-        if self.is_red_button:
-            self.axis.imshow(self.canaux[1][self.current_index], cmap=self.color_mode)
+    # def update_displayed_image(self): # Update the displayed image with the current parameters
+    #     if self.is_green_button:
+    #         self.axis.imshow(self.canaux[0][self.current_index], cmap=self.color_mode)
+    #     if self.is_red_button:
+    #         self.axis.imshow(self.canaux[1][self.current_index], cmap=self.color_mode)
 
-        if(self.is_green_button and self.is_red_button):
-            self.axis.imshow(np.dstack((self.canaux[1][self.current_index], self.canaux[0][self.current_index], np.zeros_like(self.canaux[0][self.current_index]))))
+    #     if(self.is_green_button and self.is_red_button):
+    #         self.axis.imshow(np.dstack((self.canaux[1][self.current_index], self.canaux[0][self.current_index], np.zeros_like(self.canaux[0][self.current_index]))))
       
+    #     dic = self.get_dic_ROI()
+
+        # if not self.show_tags_var.get():
+        #     self.remove_all_tags()  
+        # if self.show_tags_var.get():
+        #     for index in dic.keys(): 
+        #         if not self.tag_artists or index-1 >= len(self.tag_artists):
+        #             coords=dic.get(index, {}).get('coord') 
+        #             liste_x=[x for x, y in coords]
+        #             liste_y=[y for x, y in coords]
+        #             self.create_tag(index, min(liste_x), min(liste_y))
+        #         self.display_tag(index)
+
+    #     self.canvas.draw_idle()
+
+    def update_displayed_image(self):
+        current_image = self.canaux[self.selected_channel][self.current_index]
+
+        if hasattr(self, 'image_display') and self.image_display is not None:
+            self.image_display.set_data(current_image)
+        else:
+            self.image_display = self.axis.imshow(current_image, cmap=self.color_mode)
+
         dic = self.get_dic_ROI()
 
         if not self.show_tags_var.get():
@@ -503,7 +556,7 @@ class ImageViewer(ttk.Frame):
                     self.create_tag(index, min(liste_x), min(liste_y))
                 self.display_tag(index)
 
-        self.canvas.draw_idle()
+        self.canvas.draw_idle() 
 
     def apply_color_mode(self, image): # Apply the selected color mode to the image
         if self.color_mode == 'gray_r' and self.is_color_changed:

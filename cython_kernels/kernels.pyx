@@ -80,3 +80,25 @@ cpdef cnp.ndarray[cnp.uint8_t, ndim=3] normalize_stack(
                 out[t, h, w] = <uint8_t>norm_val
 
     return out
+
+cpdef cnp.ndarray[cnp.uint8_t, ndim=2] fast_apply_ctbv(
+        cnp.ndarray[cnp.uint8_t, ndim=2] img,
+        double contrast, double brightness,
+        int thr_min, int thr_max):
+    """
+    Apply contrast, brightness, and threshold to one 2D frame in-place.
+    """
+    cdef int H = img.shape[0]
+    cdef int W = img.shape[1]
+    cdef int h, w
+    cdef double v
+    for h in range(H):
+        for w in range(W):
+            v = img[h, w] * (1.0 + contrast) + brightness
+            if v < thr_min:
+                img[h, w] = 0
+            elif v > thr_max:
+                img[h, w] = 255
+            else:
+                img[h, w] = <uint8_t>v
+    return img
