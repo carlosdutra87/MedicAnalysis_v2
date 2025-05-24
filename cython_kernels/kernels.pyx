@@ -1,10 +1,15 @@
 # cython_kernels/kernels.pyx
-# cython: boundscheck=False, wraparound=False, nonecheck=False
+# distutils: language = c
+# cython: boundscheck=False, wraparound=False, cdivision=True, nonecheck=False, initializedcheck=False
 
 import numpy as np           
 cimport numpy as cnp            
 from libc.stdint cimport uint8_t, uint16_t
 from cython cimport double
+from cython.parallel import prange
+cimport cython
+
+cnp.import_array()
 
 cpdef double fast_mean_pixels(
         cnp.ndarray[cnp.uint16_t, ndim=2] img,
@@ -174,3 +179,57 @@ cpdef tuple get_points_in_polygon(
                 res_y_list.append(y)
 
     return (np.array(res_x_list, dtype=np.int32), np.array(res_y_list, dtype=np.int32))
+
+cpdef cnp.ndarray[cnp.uint8_t, ndim=3, mode="c"] normalize_stack_optimized(
+        cnp.ndarray[cnp.uint16_t, ndim=3, mode="c"] stack,
+        double p_low,
+        double p_high):
+    """
+    Normaliza um stack de imagens uint16 para uint8 usando limiares percentuais.
+    Otimizado com Cython, paralelização e cálculo de percentil mais cuidadoso.
+    Os percentis são calculados com base no primeiro slice do stack.
+    """
+
+    cdef int T = stack.shape[0]
+    cdef int H = stack.shape[1]
+    cdef int W = stack.shape[2]
+
+    cdef int t, h, w
+    cdef double min_val_double, max_val_double
+    cdef double val_double
+    cdef double norm_val_double
+    cdef double val_range 
+
+    cdef cnp.ndarray[cnp.uint8_t, ndim=3, mode="c"] out = np.empty((T, H, W), dtype=np.uint8)
+
+    if T > 0 and H > 0 and W > 0:
+        first_slice_flat = stack[0].ravel()
+        if first_slice_flat.size > 0:
+            min_val_double = np.percentile(first_slice_flat, p_low)
+            max_val_double = np.percentile(first_slice_flat, p_high)
+        else: 
+            min_val_double = 0.0
+            max_val_double = 0.0 
+    else: 
+        min_val_double = 0.0
+        max_val_double = 0.0 
+
+    val_range = max_val_double - min_val_double
+
+    for t in prange(T, nogil=True, schedule='static'):
+        for h in range(H):
+            for w in range(W):
+                val_double = <double>stack[t, h, w]
+                if val_double < min_val_double:
+                    norm_val_double = 0.0
+                elif val_double > max_val_double:
+                    norm_val_double = 255.0
+                else:
+                    if val_range == 0:
+                        norm_val_double = 0.0
+                    else:
+                        norm_val_double = 255.0 * (val_double - min_val_double) / val_range
+
+                out[t, h, w] = <cnp.uint8_t>norm_val_double
+                
+    return out

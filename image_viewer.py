@@ -16,7 +16,7 @@ import tifffile
 from tkinter import messagebox
 import matplotlib.text as text
 from pprint import pprint
-from cython_kernels.kernels import fast_mean_pixels, fast_temporal_average, normalize_stack, fast_apply_ctbv, fast_invert_image, get_points_in_polygon
+from cython_kernels.kernels import fast_mean_pixels, fast_temporal_average, normalize_stack, fast_apply_ctbv, fast_invert_image, get_points_in_polygon, normalize_stack_optimized
 
 class ImageViewer(ttk.Frame):
     # Initialize the ImageViewer class with the given parameters.
@@ -360,8 +360,10 @@ class ImageViewer(ttk.Frame):
         green_u16 = green_stack.astype(np.uint16)
         red_u16   = red_stack.astype(np.uint16)
 
-        self.normalized_image_array_green = normalize_stack(green_u16, 0.1, 99.8)
-        self.normalized_image_array_red   = normalize_stack(red_u16,   0.1, 99.8)
+        # self.normalized_image_array_green = normalize_stack(green_u16, 0.1, 99.8)
+        # self.normalized_image_array_red   = normalize_stack(red_u16,   0.1, 99.8)
+        self.normalized_image_array_green = normalize_stack_optimized(green_u16, 0.1, 99.8)
+        self.normalized_image_array_red   = normalize_stack_optimized(red_u16,   0.1, 99.8)
 
         if np.mean(green_stack[0]) > 2**15:
             self.normalized_image_array_green = 255 - self.normalized_image_array_green
@@ -585,8 +587,6 @@ class ImageViewer(ttk.Frame):
                 self.display_tag(index)
 
         self.canvas.draw_idle() 
-
-        self.canvas.draw_idle()
 
     # def _update_rois_and_tags_visibility(self):
     #     for roi_id in self.ROI_objects:
