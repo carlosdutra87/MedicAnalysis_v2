@@ -16,7 +16,7 @@ import tifffile
 from tkinter import messagebox
 import matplotlib.text as text
 from pprint import pprint
-from cython_kernels.kernels import fast_mean_pixels, fast_temporal_average, normalize_stack, fast_apply_ctbv
+from cython_kernels.kernels import fast_mean_pixels, fast_temporal_average, normalize_stack, fast_apply_ctbv, fast_invert_image, get_points_in_polygon
 
 class ImageViewer(ttk.Frame):
     # Initialize the ImageViewer class with the given parameters.
@@ -429,7 +429,6 @@ class ImageViewer(ttk.Frame):
             self.threshold_max,
         )
 
-    
     def update_brightness(self, *args): # Update the brightness value
         self.brightness_value = round(self.brightness_slider.get(), 2)  # Round to two decimal places
         self.contrast_brightness_threshold()
@@ -535,13 +534,42 @@ class ImageViewer(ttk.Frame):
 
     #     self.canvas.draw_idle()
 
-    def update_displayed_image(self):
-        current_image = self.canaux[self.selected_channel][self.current_index]
+    # def update_displayed_image(self):
+    #     current_image = self.canaux[self.selected_channel][self.current_index]
 
-        if hasattr(self, 'image_display') and self.image_display is not None:
-            self.image_display.set_data(current_image)
+    #     if hasattr(self, 'image_display') and self.image_display is not None:
+    #         self.image_display.set_data(current_image)
+    #     else:
+    #         self.image_display = self.axis.imshow(current_image, cmap=self.color_mode)
+
+        # dic = self.get_dic_ROI()
+
+        # if not self.show_tags_var.get():
+        #     self.remove_all_tags()  
+        # if self.show_tags_var.get():
+        #     for index in dic.keys(): 
+        #         if not self.tag_artists or index-1 >= len(self.tag_artists):
+        #             coords=dic.get(index, {}).get('coord') 
+        #             liste_x=[x for x, y in coords]
+        #             liste_y=[y for x, y in coords]
+        #             self.create_tag(index, min(liste_x), min(liste_y))
+        #         self.display_tag(index)
+
+        # self.canvas.draw_idle() 
+
+    def update_displayed_image(self, *args):
+        current_image_data = self.canaux[self.selected_channel][self.current_index]
+
+        if not hasattr(self, 'image_display') or self.image_display is None or \
+        current_image_data.shape != self.image_display.get_array().shape:
+            self.axis.clear()
+            self.image_display = self.axis.imshow(current_image_data, cmap=self.color_mode)
+            self.axis.set_aspect('equal') 
+            self.axis.autoscale_view(True,True,True)
         else:
-            self.image_display = self.axis.imshow(current_image, cmap=self.color_mode)
+            processed_image = self.apply_color_mode(current_image_data)
+            self.image_display.set_data(processed_image)
+            self.image_display.set_cmap(self.color_mode) 
 
         dic = self.get_dic_ROI()
 
@@ -558,9 +586,37 @@ class ImageViewer(ttk.Frame):
 
         self.canvas.draw_idle() 
 
+        self.canvas.draw_idle()
+
+    # def _update_rois_and_tags_visibility(self):
+    #     for roi_id in self.ROI_objects:
+    #         self.ROI_objects[roi_id]['seg'][0].set_visible(False)
+    #         for point_artist in self.ROI_objects[roi_id]['points']:
+    #             if isinstance(point_artist, list): 
+    #                 for p in point_artist:
+    #                     p.set_visible(False)
+    #             else: 
+    #                 point_artist.set_visible(False)
+    #     self.remove_all_tags() 
+
+    #     for roi_id, roi_data in self.ROI_objects.items():
+    #         if roi_data['seg'][0].get_visible(): 
+    #             for points_list in roi_data['points']:
+    #                 for point in points_list:
+    #                     point.set_visible(True)
+    #             if self.show_tags_var.get():
+    #                 self.display_tag(roi_id + 1)
+
+    # def apply_color_mode(self, image): # Apply the selected color mode to the image
+    #     if self.color_mode == 'gray_r' and self.is_color_changed:
+    #         return 1.0 - image.reshape(self.original_image[0,0].shape)  # Reshape to the original shape
+    #     else:
+    #         return image
+
     def apply_color_mode(self, image): # Apply the selected color mode to the image
         if self.color_mode == 'gray_r' and self.is_color_changed:
-            return 1.0 - image.reshape(self.original_image[0,0].shape)  # Reshape to the original shape
+            # Assumindo que 'image' já é o frame uint8 correto do canaux
+            return fast_invert_image(image) # Use o kernel Cython
         else:
             return image
         
@@ -759,16 +815,26 @@ class ImageViewer(ttk.Frame):
         if len(self.segment_x_points) < 3:
             return  # At least 3 points needed to form a segment
 
-        # Add the first point to the end to create a closed segment
-        self.segment_x_points.append(self.segment_x_points[0])
-        self.segment_y_points.append(self.segment_y_points[0])
+        # # Add the first point to the end to create a closed segment
+        # self.segment_x_points.append(self.segment_x_points[0])
+        # self.segment_y_points.append(self.segment_y_points[0])
 
-        # Convert segment points to NumPy array
-        segment_x_array = np.array(self.segment_x_points)
-        segment_y_array = np.array(self.segment_y_points)
+        # # Convert segment points to NumPy array
+        # segment_x_array = np.array(self.segment_x_points)
+        # segment_y_array = np.array(self.segment_y_points)
+
+        # Add the first point to the end to create a closed segment
+        poly_x = np.array(self.segment_x_points + [self.segment_x_points[0]], dtype=np.double)
+        poly_y = np.array(self.segment_y_points + [self.segment_y_points[0]], dtype=np.double)
+
+        # Get image dimensions from current_image for clamping bounds
+        img_height, img_width = self.canaux[self.selected_channel][self.current_index].shape
+
+        self.x_in, self.y_in = get_points_in_polygon(poly_x, poly_y, img_width, img_height)
 
         # Draw the closed segment on the displayed image
-        temp_segment = self.axis.plot(segment_x_array, segment_y_array, self.marker_styles_line[self.id_color])
+        # temp_segment = self.axis.plot(segment_x_array, segment_y_array, self.marker_styles_line[self.id_color])
+        temp_segment = self.axis.plot(poly_x, poly_y, self.marker_styles_line[self.id_color])
         temp_points = self.temp_ROI_points[:]
         self.temp_ROI_points = []
 
@@ -787,9 +853,19 @@ class ImageViewer(ttk.Frame):
         mean_values = self.mean_over_time()
 
         # Create a data structure with relevant information
+        # segment_data = {
+        #     'segment_x_array': segment_x_array,
+        #     'segment_y_array': segment_y_array,
+        #     'mean_values': 
+        #                 {
+        #                 0: mean_values[0],
+        #                 1: mean_values[1],
+        #             }
+        # }
+
         segment_data = {
-            'segment_x_array': segment_x_array,
-            'segment_y_array': segment_y_array,
+            'segment_x_array': poly_x,
+            'segment_y_array': poly_y,
             'mean_values': 
                         {
                         0: mean_values[0],

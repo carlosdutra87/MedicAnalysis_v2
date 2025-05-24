@@ -102,3 +102,75 @@ cpdef cnp.ndarray[cnp.uint8_t, ndim=2] fast_apply_ctbv(
             else:
                 img[h, w] = <uint8_t>v
     return img
+
+cpdef cnp.ndarray[cnp.uint8_t, ndim=2] fast_invert_image(
+        cnp.ndarray[cnp.uint8_t, ndim=2] img):
+    """
+    Invert a 2D uint8 image (255 - pixel_value).
+    """
+    cdef int H = img.shape[0]
+    cdef int W = img.shape[1]
+    cdef int h, w
+    cdef uint8_t val
+    cdef cnp.ndarray[cnp.uint8_t, ndim=2] out = np.empty_like(img, dtype=np.uint8)
+
+    for h in range(H):
+        for w in range(W):
+            val = img[h, w]
+            out[h, w] = 255 - val 
+    return out
+
+cdef bint _is_point_in_polygon(double x, double y,
+                               cnp.ndarray[cnp.double_t, ndim=1] poly_x,
+                               cnp.ndarray[cnp.double_t, ndim=1] poly_y):
+    """
+    Internal helper: Check if a single point (x, y) is inside the polygon.
+    Based on the ray casting algorithm.
+    """
+    cdef Py_ssize_t nb_corners = poly_x.shape[0]
+    cdef Py_ssize_t i, j
+    cdef bint odd_nodes = False
+    cdef double xi, yi, xj, yj
+
+    j = nb_corners - 1
+    for i in range(nb_corners):
+        xi = poly_x[i]
+        yi = poly_y[i]
+        xj = poly_x[j]
+        yj = poly_y[j]
+
+        if (yi < y and yj >= y) or (yj < y and yi >= y):
+            if (xi + (y - yi) / (yj - yi) * (xj - xi) < x):
+                odd_nodes = not odd_nodes
+        j = i
+    return odd_nodes
+
+cpdef tuple get_points_in_polygon(
+    cnp.ndarray[cnp.double_t, ndim=1] segment_x_points,
+    cnp.ndarray[cnp.double_t, ndim=1] segment_y_points,
+    int img_width, int img_height): 
+    """
+    Get the list of points (x, y) inside the polygon defined by segment_x_points, segment_y_points.
+    Returns two NumPy arrays: (xs_in, ys_in).
+    """
+    cdef int left = np.floor(np.min(segment_x_points))
+    cdef int right = np.ceil(np.max(segment_x_points))
+    cdef int top = np.ceil(np.max(segment_y_points)) # max y é o limite inferior 
+    cdef int bot = np.floor(np.min(segment_y_points)) # min y é o limite superior
+
+    left = max(0, left)
+    right = min(img_width - 1, right)
+    bot = max(0, bot)
+    top = min(img_height - 1, top)
+
+    cdef list res_x_list = []
+    cdef list res_y_list = []
+    cdef int x, y
+
+    for x in range(left, right + 1): # Inclui o limite superior
+        for y in range(bot, top + 1): # Inclui o limite superior
+            if _is_point_in_polygon(<double>x, <double>y, segment_x_points, segment_y_points):
+                res_x_list.append(x)
+                res_y_list.append(y)
+
+    return (np.array(res_x_list, dtype=np.int32), np.array(res_y_list, dtype=np.int32))
