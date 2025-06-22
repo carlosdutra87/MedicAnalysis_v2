@@ -559,20 +559,56 @@ class ImageViewer(ttk.Frame):
 
         # self.canvas.draw_idle() 
 
+    # def update_displayed_image(self, *args):
+    #     current_image_data = self.canaux[self.selected_channel][self.current_index]
+
+    #     if not hasattr(self, 'image_display') or self.image_display is None or \
+    #     current_image_data.shape != self.image_display.get_array().shape:
+    #         self.axis.clear()
+    #         self.image_display = self.axis.imshow(current_image_data, cmap=self.color_mode)
+    #         self.axis.set_aspect('equal') 
+    #         self.axis.autoscale_view(True,True,True)
+    #     else:
+    #         processed_image = self.apply_color_mode(current_image_data)
+    #         self.image_display.set_data(processed_image)
+    #         self.image_display.set_cmap(self.color_mode) 
+
+        # dic = self.get_dic_ROI()
+
+        # if not self.show_tags_var.get():
+        #     self.remove_all_tags()  
+        # if self.show_tags_var.get():
+        #     for index in dic.keys(): 
+        #         if not self.tag_artists or index-1 >= len(self.tag_artists):
+        #             coords=dic.get(index, {}).get('coord') 
+        #             liste_x=[x for x, y in coords]
+        #             liste_y=[y for x, y in coords]
+        #             self.create_tag(index, min(liste_x), min(liste_y))
+        #         self.display_tag(index)
+
+        # self.canvas.draw_idle() 
+
     def update_displayed_image(self, *args):
-        current_image_data = self.canaux[self.selected_channel][self.current_index]
-
-        if not hasattr(self, 'image_display') or self.image_display is None or \
-        current_image_data.shape != self.image_display.get_array().shape:
-            self.axis.clear()
-            self.image_display = self.axis.imshow(current_image_data, cmap=self.color_mode)
-            self.axis.set_aspect('equal') 
-            self.axis.autoscale_view(True,True,True)
+        if self.is_green_button and self.is_red_button:
+            combined = np.dstack(
+                (self.canaux[1][self.current_index],  # Red
+                self.canaux[0][self.current_index],  # Green
+                np.zeros_like(self.canaux[0][self.current_index]))
+            )
+            current_image_data = combined
+            cmap = None
         else:
-            processed_image = self.apply_color_mode(current_image_data)
-            self.image_display.set_data(processed_image)
-            self.image_display.set_cmap(self.color_mode) 
+            current_image_data = self.canaux[self.selected_channel][self.current_index]
+            cmap = self.color_mode
+            current_image_data = self.apply_color_mode(current_image_data)
 
+        if not hasattr(self, 'image_display') or self.image_display is None:
+            self.image_display = self.axis.imshow(current_image_data, cmap=cmap)
+        else:
+            self.image_display.set_data(current_image_data)
+            if cmap:
+                self.image_display.set_cmap(cmap)
+        
         dic = self.get_dic_ROI()
 
         if not self.show_tags_var.get():
