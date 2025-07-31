@@ -8339,17 +8339,17 @@ static PyArrayObject *__pyx_f_14cython_kernels_7kernels_normalize_stack_optimize
   }
   __pyx_pybuffernd_stack.diminfo[0].strides = __pyx_pybuffernd_stack.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_stack.diminfo[0].shape = __pyx_pybuffernd_stack.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_stack.diminfo[1].strides = __pyx_pybuffernd_stack.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_stack.diminfo[1].shape = __pyx_pybuffernd_stack.rcbuffer->pybuffer.shape[1]; __pyx_pybuffernd_stack.diminfo[2].strides = __pyx_pybuffernd_stack.rcbuffer->pybuffer.strides[2]; __pyx_pybuffernd_stack.diminfo[2].shape = __pyx_pybuffernd_stack.rcbuffer->pybuffer.shape[2];
 
-  /* "cython_kernels/kernels.pyx":194
+  /* "cython_kernels/kernels.pyx":193
+ *     """
  * 
- *     # Obter dimenses do stack
  *     cdef int T = stack.shape[0]             # <<<<<<<<<<<<<<
  *     cdef int H = stack.shape[1]
  *     cdef int W = stack.shape[2]
  */
   __pyx_v_T = (__pyx_f_5numpy_7ndarray_5shape_shape(((PyArrayObject *)__pyx_v_stack))[0]);
 
-  /* "cython_kernels/kernels.pyx":195
- *     # Obter dimenses do stack
+  /* "cython_kernels/kernels.pyx":194
+ * 
  *     cdef int T = stack.shape[0]
  *     cdef int H = stack.shape[1]             # <<<<<<<<<<<<<<
  *     cdef int W = stack.shape[2]
@@ -8357,70 +8357,70 @@ static PyArrayObject *__pyx_f_14cython_kernels_7kernels_normalize_stack_optimize
  */
   __pyx_v_H = (__pyx_f_5numpy_7ndarray_5shape_shape(((PyArrayObject *)__pyx_v_stack))[1]);
 
-  /* "cython_kernels/kernels.pyx":196
+  /* "cython_kernels/kernels.pyx":195
  *     cdef int T = stack.shape[0]
  *     cdef int H = stack.shape[1]
  *     cdef int W = stack.shape[2]             # <<<<<<<<<<<<<<
  * 
- *     # Variveis para os loops e clculos
+ *     cdef int t, h, w
  */
   __pyx_v_W = (__pyx_f_5numpy_7ndarray_5shape_shape(((PyArrayObject *)__pyx_v_stack))[2]);
 
-  /* "cython_kernels/kernels.pyx":207
- *     # Array de sada. Especificar mode="c" garante que seja C-contguo,
- *     # o que  bom para performance, especialmente com prange.
+  /* "cython_kernels/kernels.pyx":203
+ *     cdef double val_range
+ * 
  *     cdef cnp.ndarray[cnp.uint8_t, ndim=3, mode="c"] out = np.empty((T, H, W), dtype=np.uint8)             # <<<<<<<<<<<<<<
  * 
- *     # --- Clculo do Percentil ---
+ *     if T > 0 and H > 0 and W > 0:
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 207, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 203, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_empty); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 207, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_empty); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 203, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_T); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 207, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_T); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 203, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_H); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 207, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_H); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 203, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_v_W); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 207, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_v_W); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 203, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = PyTuple_New(3); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 207, __pyx_L1_error)
+  __pyx_t_5 = PyTuple_New(3); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 203, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_GIVEREF(__pyx_t_1);
-  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_1)) __PYX_ERR(0, 207, __pyx_L1_error);
+  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_1)) __PYX_ERR(0, 203, __pyx_L1_error);
   __Pyx_GIVEREF(__pyx_t_3);
-  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_5, 1, __pyx_t_3)) __PYX_ERR(0, 207, __pyx_L1_error);
+  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_5, 1, __pyx_t_3)) __PYX_ERR(0, 203, __pyx_L1_error);
   __Pyx_GIVEREF(__pyx_t_4);
-  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_5, 2, __pyx_t_4)) __PYX_ERR(0, 207, __pyx_L1_error);
+  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_5, 2, __pyx_t_4)) __PYX_ERR(0, 203, __pyx_L1_error);
   __pyx_t_1 = 0;
   __pyx_t_3 = 0;
   __pyx_t_4 = 0;
-  __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 207, __pyx_L1_error)
+  __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 203, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_GIVEREF(__pyx_t_5);
-  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_5)) __PYX_ERR(0, 207, __pyx_L1_error);
+  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_5)) __PYX_ERR(0, 203, __pyx_L1_error);
   __pyx_t_5 = 0;
-  __pyx_t_5 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 207, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 203, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 207, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 203, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_uint8); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 207, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_uint8); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 203, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_dtype, __pyx_t_1) < 0) __PYX_ERR(0, 207, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_dtype, __pyx_t_1) < 0) __PYX_ERR(0, 203, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_4, __pyx_t_5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 207, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_4, __pyx_t_5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 203, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  if (!(likely(((__pyx_t_1) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_1, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 207, __pyx_L1_error)
+  if (!(likely(((__pyx_t_1) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_1, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 203, __pyx_L1_error)
   __pyx_t_6 = ((PyArrayObject *)__pyx_t_1);
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
     if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_out.rcbuffer->pybuffer, (PyObject*)__pyx_t_6, &__Pyx_TypeInfo_nn___pyx_t_5numpy_uint8_t, PyBUF_FORMAT| PyBUF_C_CONTIGUOUS| PyBUF_WRITABLE, 3, 0, __pyx_stack) == -1)) {
       __pyx_v_out = ((PyArrayObject *)Py_None); __Pyx_INCREF(Py_None); __pyx_pybuffernd_out.rcbuffer->pybuffer.buf = NULL;
-      __PYX_ERR(0, 207, __pyx_L1_error)
+      __PYX_ERR(0, 203, __pyx_L1_error)
     } else {__pyx_pybuffernd_out.diminfo[0].strides = __pyx_pybuffernd_out.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_out.diminfo[0].shape = __pyx_pybuffernd_out.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_out.diminfo[1].strides = __pyx_pybuffernd_out.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_out.diminfo[1].shape = __pyx_pybuffernd_out.rcbuffer->pybuffer.shape[1]; __pyx_pybuffernd_out.diminfo[2].strides = __pyx_pybuffernd_out.rcbuffer->pybuffer.strides[2]; __pyx_pybuffernd_out.diminfo[2].shape = __pyx_pybuffernd_out.rcbuffer->pybuffer.shape[2];
     }
   }
@@ -8428,12 +8428,12 @@ static PyArrayObject *__pyx_f_14cython_kernels_7kernels_normalize_stack_optimize
   __pyx_v_out = ((PyArrayObject *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "cython_kernels/kernels.pyx":215
- *     # em Cython/C puro (e.g., usando um algoritmo como Quickselect).
+  /* "cython_kernels/kernels.pyx":205
+ *     cdef cnp.ndarray[cnp.uint8_t, ndim=3, mode="c"] out = np.empty((T, H, W), dtype=np.uint8)
  * 
- *     if T > 0 and H > 0 and W > 0: # Garante que o stack no est vazio             # <<<<<<<<<<<<<<
- *         # Usar .ravel() cria uma cpia (geralmente).
- *         # Se stack[0] for muito grande, isso tem um custo de memria e tempo.
+ *     if T > 0 and H > 0 and W > 0:             # <<<<<<<<<<<<<<
+ *         first_slice_flat = stack[0].ravel()
+ *         if first_slice_flat.size > 0:
  */
   __pyx_t_8 = (__pyx_v_T > 0);
   if (__pyx_t_8) {
@@ -8452,16 +8452,16 @@ static PyArrayObject *__pyx_f_14cython_kernels_7kernels_normalize_stack_optimize
   __pyx_L4_bool_binop_done:;
   if (__pyx_t_7) {
 
-    /* "cython_kernels/kernels.pyx":218
- *         # Usar .ravel() cria uma cpia (geralmente).
- *         # Se stack[0] for muito grande, isso tem um custo de memria e tempo.
+    /* "cython_kernels/kernels.pyx":206
+ * 
+ *     if T > 0 and H > 0 and W > 0:
  *         first_slice_flat = stack[0].ravel()             # <<<<<<<<<<<<<<
  *         if first_slice_flat.size > 0:
- *             # Chamadas ao NumPy (Python API)
+ *             min_val_double = np.percentile(first_slice_flat, p_low)
  */
-    __pyx_t_5 = __Pyx_GetItemInt(((PyObject *)__pyx_v_stack), 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 0); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 218, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_GetItemInt(((PyObject *)__pyx_v_stack), 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 0); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 206, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_ravel); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 218, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_ravel); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 206, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     __pyx_t_5 = NULL;
@@ -8482,41 +8482,41 @@ static PyArrayObject *__pyx_f_14cython_kernels_7kernels_normalize_stack_optimize
       PyObject *__pyx_callargs[2] = {__pyx_t_5, NULL};
       __pyx_t_1 = __Pyx_PyObject_FastCall(__pyx_t_4, __pyx_callargs+1-__pyx_t_9, 0+__pyx_t_9);
       __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-      if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 218, __pyx_L1_error)
+      if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 206, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     }
     __pyx_v_first_slice_flat = __pyx_t_1;
     __pyx_t_1 = 0;
 
-    /* "cython_kernels/kernels.pyx":219
- *         # Se stack[0] for muito grande, isso tem um custo de memria e tempo.
+    /* "cython_kernels/kernels.pyx":207
+ *     if T > 0 and H > 0 and W > 0:
  *         first_slice_flat = stack[0].ravel()
  *         if first_slice_flat.size > 0:             # <<<<<<<<<<<<<<
- *             # Chamadas ao NumPy (Python API)
  *             min_val_double = np.percentile(first_slice_flat, p_low)
+ *             max_val_double = np.percentile(first_slice_flat, p_high)
  */
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_first_slice_flat, __pyx_n_s_size); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 219, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_first_slice_flat, __pyx_n_s_size); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 207, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_4 = PyObject_RichCompare(__pyx_t_1, __pyx_int_0, Py_GT); __Pyx_XGOTREF(__pyx_t_4); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 219, __pyx_L1_error)
+    __pyx_t_4 = PyObject_RichCompare(__pyx_t_1, __pyx_int_0, Py_GT); __Pyx_XGOTREF(__pyx_t_4); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 207, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __pyx_t_7 = __Pyx_PyObject_IsTrue(__pyx_t_4); if (unlikely((__pyx_t_7 < 0))) __PYX_ERR(0, 219, __pyx_L1_error)
+    __pyx_t_7 = __Pyx_PyObject_IsTrue(__pyx_t_4); if (unlikely((__pyx_t_7 < 0))) __PYX_ERR(0, 207, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     if (__pyx_t_7) {
 
-      /* "cython_kernels/kernels.pyx":221
+      /* "cython_kernels/kernels.pyx":208
+ *         first_slice_flat = stack[0].ravel()
  *         if first_slice_flat.size > 0:
- *             # Chamadas ao NumPy (Python API)
  *             min_val_double = np.percentile(first_slice_flat, p_low)             # <<<<<<<<<<<<<<
  *             max_val_double = np.percentile(first_slice_flat, p_high)
- *         else: # Caso de slice vazio
+ *         else:
  */
-      __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 221, __pyx_L1_error)
+      __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 208, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
-      __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_percentile); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 221, __pyx_L1_error)
+      __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_percentile); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 208, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_5);
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-      __pyx_t_1 = PyFloat_FromDouble(__pyx_v_p_low); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 221, __pyx_L1_error)
+      __pyx_t_1 = PyFloat_FromDouble(__pyx_v_p_low); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 208, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
       __pyx_t_2 = NULL;
       __pyx_t_9 = 0;
@@ -8537,27 +8537,27 @@ static PyArrayObject *__pyx_f_14cython_kernels_7kernels_normalize_stack_optimize
         __pyx_t_4 = __Pyx_PyObject_FastCall(__pyx_t_5, __pyx_callargs+1-__pyx_t_9, 2+__pyx_t_9);
         __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
         __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-        if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 221, __pyx_L1_error)
+        if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 208, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_4);
         __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       }
-      __pyx_t_10 = __pyx_PyFloat_AsDouble(__pyx_t_4); if (unlikely((__pyx_t_10 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 221, __pyx_L1_error)
+      __pyx_t_10 = __pyx_PyFloat_AsDouble(__pyx_t_4); if (unlikely((__pyx_t_10 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 208, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       __pyx_v_min_val_double = __pyx_t_10;
 
-      /* "cython_kernels/kernels.pyx":222
- *             # Chamadas ao NumPy (Python API)
+      /* "cython_kernels/kernels.pyx":209
+ *         if first_slice_flat.size > 0:
  *             min_val_double = np.percentile(first_slice_flat, p_low)
  *             max_val_double = np.percentile(first_slice_flat, p_high)             # <<<<<<<<<<<<<<
- *         else: # Caso de slice vazio
+ *         else:
  *             min_val_double = 0.0
  */
-      __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 222, __pyx_L1_error)
+      __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 209, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_5);
-      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_percentile); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 222, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_percentile); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 209, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __pyx_t_5 = PyFloat_FromDouble(__pyx_v_p_high); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 222, __pyx_L1_error)
+      __pyx_t_5 = PyFloat_FromDouble(__pyx_v_p_high); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 209, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_5);
       __pyx_t_2 = NULL;
       __pyx_t_9 = 0;
@@ -8578,69 +8578,69 @@ static PyArrayObject *__pyx_f_14cython_kernels_7kernels_normalize_stack_optimize
         __pyx_t_4 = __Pyx_PyObject_FastCall(__pyx_t_1, __pyx_callargs+1-__pyx_t_9, 2+__pyx_t_9);
         __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
         __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-        if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 222, __pyx_L1_error)
+        if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 209, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_4);
         __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
       }
-      __pyx_t_10 = __pyx_PyFloat_AsDouble(__pyx_t_4); if (unlikely((__pyx_t_10 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 222, __pyx_L1_error)
+      __pyx_t_10 = __pyx_PyFloat_AsDouble(__pyx_t_4); if (unlikely((__pyx_t_10 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 209, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       __pyx_v_max_val_double = __pyx_t_10;
 
-      /* "cython_kernels/kernels.pyx":219
- *         # Se stack[0] for muito grande, isso tem um custo de memria e tempo.
+      /* "cython_kernels/kernels.pyx":207
+ *     if T > 0 and H > 0 and W > 0:
  *         first_slice_flat = stack[0].ravel()
  *         if first_slice_flat.size > 0:             # <<<<<<<<<<<<<<
- *             # Chamadas ao NumPy (Python API)
  *             min_val_double = np.percentile(first_slice_flat, p_low)
+ *             max_val_double = np.percentile(first_slice_flat, p_high)
  */
       goto __pyx_L7;
     }
 
-    /* "cython_kernels/kernels.pyx":224
+    /* "cython_kernels/kernels.pyx":211
  *             max_val_double = np.percentile(first_slice_flat, p_high)
- *         else: # Caso de slice vazio
+ *         else:
  *             min_val_double = 0.0             # <<<<<<<<<<<<<<
- *             max_val_double = 0.0 # Levar a todos os valores sendo 0 ou 255
- *     else: # Caso de stack vazio
+ *             max_val_double = 0.0
+ *     else:
  */
     /*else*/ {
       __pyx_v_min_val_double = 0.0;
 
-      /* "cython_kernels/kernels.pyx":225
- *         else: # Caso de slice vazio
+      /* "cython_kernels/kernels.pyx":212
+ *         else:
  *             min_val_double = 0.0
- *             max_val_double = 0.0 # Levar a todos os valores sendo 0 ou 255             # <<<<<<<<<<<<<<
- *     else: # Caso de stack vazio
+ *             max_val_double = 0.0             # <<<<<<<<<<<<<<
+ *     else:
  *         min_val_double = 0.0
  */
       __pyx_v_max_val_double = 0.0;
     }
     __pyx_L7:;
 
-    /* "cython_kernels/kernels.pyx":215
- *     # em Cython/C puro (e.g., usando um algoritmo como Quickselect).
+    /* "cython_kernels/kernels.pyx":205
+ *     cdef cnp.ndarray[cnp.uint8_t, ndim=3, mode="c"] out = np.empty((T, H, W), dtype=np.uint8)
  * 
- *     if T > 0 and H > 0 and W > 0: # Garante que o stack no est vazio             # <<<<<<<<<<<<<<
- *         # Usar .ravel() cria uma cpia (geralmente).
- *         # Se stack[0] for muito grande, isso tem um custo de memria e tempo.
+ *     if T > 0 and H > 0 and W > 0:             # <<<<<<<<<<<<<<
+ *         first_slice_flat = stack[0].ravel()
+ *         if first_slice_flat.size > 0:
  */
     goto __pyx_L3;
   }
 
-  /* "cython_kernels/kernels.pyx":227
- *             max_val_double = 0.0 # Levar a todos os valores sendo 0 ou 255
- *     else: # Caso de stack vazio
+  /* "cython_kernels/kernels.pyx":214
+ *             max_val_double = 0.0
+ *     else:
  *         min_val_double = 0.0             # <<<<<<<<<<<<<<
- *         max_val_double = 0.0 # Retorna array de sada zerado ou vazio
+ *         max_val_double = 0.0
  * 
  */
   /*else*/ {
     __pyx_v_min_val_double = 0.0;
 
-    /* "cython_kernels/kernels.pyx":228
- *     else: # Caso de stack vazio
+    /* "cython_kernels/kernels.pyx":215
+ *     else:
  *         min_val_double = 0.0
- *         max_val_double = 0.0 # Retorna array de sada zerado ou vazio             # <<<<<<<<<<<<<<
+ *         max_val_double = 0.0             # <<<<<<<<<<<<<<
  * 
  *     val_range = max_val_double - min_val_double
  */
@@ -8648,21 +8648,21 @@ static PyArrayObject *__pyx_f_14cython_kernels_7kernels_normalize_stack_optimize
   }
   __pyx_L3:;
 
-  /* "cython_kernels/kernels.pyx":230
- *         max_val_double = 0.0 # Retorna array de sada zerado ou vazio
+  /* "cython_kernels/kernels.pyx":217
+ *         max_val_double = 0.0
  * 
  *     val_range = max_val_double - min_val_double             # <<<<<<<<<<<<<<
  * 
- *     # --- Loop de Normalizao de Pixel ---
+ *     for t in prange(T, nogil=True, schedule='static'):
  */
   __pyx_v_val_range = (__pyx_v_max_val_double - __pyx_v_min_val_double);
 
-  /* "cython_kernels/kernels.pyx":242
- *     # O schedule='static' geralmente  bom para tarefas onde cada iterao
- *     # tem um custo computacional similar.
+  /* "cython_kernels/kernels.pyx":219
+ *     val_range = max_val_double - min_val_double
+ * 
  *     for t in prange(T, nogil=True, schedule='static'):             # <<<<<<<<<<<<<<
- *         # As variveis h, w, val_double, norm_val_double so locais para cada thread/iterao de t
  *         for h in range(H):
+ *             for w in range(W):
  */
   {
       #ifdef WITH_THREAD
@@ -8699,45 +8699,45 @@ static PyArrayObject *__pyx_f_14cython_kernels_7kernels_normalize_stack_optimize
                             __pyx_v_val_double = ((double)__PYX_NAN());
                             __pyx_v_w = ((int)0xbad0bad0);
 
-                            /* "cython_kernels/kernels.pyx":244
+                            /* "cython_kernels/kernels.pyx":220
+ * 
  *     for t in prange(T, nogil=True, schedule='static'):
- *         # As variveis h, w, val_double, norm_val_double so locais para cada thread/iterao de t
  *         for h in range(H):             # <<<<<<<<<<<<<<
  *             for w in range(W):
- *                 val_double = <double>stack[t, h, w] # Converte para double para clculo
+ *                 val_double = <double>stack[t, h, w]
  */
                             __pyx_t_14 = __pyx_v_H;
                             __pyx_t_15 = __pyx_t_14;
                             for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
                               __pyx_v_h = __pyx_t_16;
 
-                              /* "cython_kernels/kernels.pyx":245
- *         # As variveis h, w, val_double, norm_val_double so locais para cada thread/iterao de t
+                              /* "cython_kernels/kernels.pyx":221
+ *     for t in prange(T, nogil=True, schedule='static'):
  *         for h in range(H):
  *             for w in range(W):             # <<<<<<<<<<<<<<
- *                 val_double = <double>stack[t, h, w] # Converte para double para clculo
- * 
+ *                 val_double = <double>stack[t, h, w]
+ *                 if val_double < min_val_double:
  */
                               __pyx_t_17 = __pyx_v_W;
                               __pyx_t_18 = __pyx_t_17;
                               for (__pyx_t_19 = 0; __pyx_t_19 < __pyx_t_18; __pyx_t_19+=1) {
                                 __pyx_v_w = __pyx_t_19;
 
-                                /* "cython_kernels/kernels.pyx":246
+                                /* "cython_kernels/kernels.pyx":222
  *         for h in range(H):
  *             for w in range(W):
- *                 val_double = <double>stack[t, h, w] # Converte para double para clculo             # <<<<<<<<<<<<<<
- * 
+ *                 val_double = <double>stack[t, h, w]             # <<<<<<<<<<<<<<
  *                 if val_double < min_val_double:
+ *                     norm_val_double = 0.0
  */
                                 __pyx_t_20 = __pyx_v_t;
                                 __pyx_t_21 = __pyx_v_h;
                                 __pyx_t_22 = __pyx_v_w;
                                 __pyx_v_val_double = ((double)(*__Pyx_BufPtrCContig3d(__pyx_t_5numpy_uint16_t *, __pyx_pybuffernd_stack.rcbuffer->pybuffer.buf, __pyx_t_20, __pyx_pybuffernd_stack.diminfo[0].strides, __pyx_t_21, __pyx_pybuffernd_stack.diminfo[1].strides, __pyx_t_22, __pyx_pybuffernd_stack.diminfo[2].strides)));
 
-                                /* "cython_kernels/kernels.pyx":248
- *                 val_double = <double>stack[t, h, w] # Converte para double para clculo
- * 
+                                /* "cython_kernels/kernels.pyx":223
+ *             for w in range(W):
+ *                 val_double = <double>stack[t, h, w]
  *                 if val_double < min_val_double:             # <<<<<<<<<<<<<<
  *                     norm_val_double = 0.0
  *                 elif val_double > max_val_double:
@@ -8745,8 +8745,8 @@ static PyArrayObject *__pyx_f_14cython_kernels_7kernels_normalize_stack_optimize
                                 __pyx_t_7 = (__pyx_v_val_double < __pyx_v_min_val_double);
                                 if (__pyx_t_7) {
 
-                                  /* "cython_kernels/kernels.pyx":249
- * 
+                                  /* "cython_kernels/kernels.pyx":224
+ *                 val_double = <double>stack[t, h, w]
  *                 if val_double < min_val_double:
  *                     norm_val_double = 0.0             # <<<<<<<<<<<<<<
  *                 elif val_double > max_val_double:
@@ -8754,9 +8754,9 @@ static PyArrayObject *__pyx_f_14cython_kernels_7kernels_normalize_stack_optimize
  */
                                   __pyx_v_norm_val_double = 0.0;
 
-                                  /* "cython_kernels/kernels.pyx":248
- *                 val_double = <double>stack[t, h, w] # Converte para double para clculo
- * 
+                                  /* "cython_kernels/kernels.pyx":223
+ *             for w in range(W):
+ *                 val_double = <double>stack[t, h, w]
  *                 if val_double < min_val_double:             # <<<<<<<<<<<<<<
  *                     norm_val_double = 0.0
  *                 elif val_double > max_val_double:
@@ -8764,7 +8764,7 @@ static PyArrayObject *__pyx_f_14cython_kernels_7kernels_normalize_stack_optimize
                                   goto __pyx_L19;
                                 }
 
-                                /* "cython_kernels/kernels.pyx":250
+                                /* "cython_kernels/kernels.pyx":225
  *                 if val_double < min_val_double:
  *                     norm_val_double = 0.0
  *                 elif val_double > max_val_double:             # <<<<<<<<<<<<<<
@@ -8774,7 +8774,7 @@ static PyArrayObject *__pyx_f_14cython_kernels_7kernels_normalize_stack_optimize
                                 __pyx_t_7 = (__pyx_v_val_double > __pyx_v_max_val_double);
                                 if (__pyx_t_7) {
 
-                                  /* "cython_kernels/kernels.pyx":251
+                                  /* "cython_kernels/kernels.pyx":226
  *                     norm_val_double = 0.0
  *                 elif val_double > max_val_double:
  *                     norm_val_double = 255.0             # <<<<<<<<<<<<<<
@@ -8783,7 +8783,7 @@ static PyArrayObject *__pyx_f_14cython_kernels_7kernels_normalize_stack_optimize
  */
                                   __pyx_v_norm_val_double = 255.0;
 
-                                  /* "cython_kernels/kernels.pyx":250
+                                  /* "cython_kernels/kernels.pyx":225
  *                 if val_double < min_val_double:
  *                     norm_val_double = 0.0
  *                 elif val_double > max_val_double:             # <<<<<<<<<<<<<<
@@ -8793,42 +8793,42 @@ static PyArrayObject *__pyx_f_14cython_kernels_7kernels_normalize_stack_optimize
                                   goto __pyx_L19;
                                 }
 
-                                /* "cython_kernels/kernels.pyx":253
+                                /* "cython_kernels/kernels.pyx":228
  *                     norm_val_double = 255.0
  *                 else:
  *                     if val_range == 0:             # <<<<<<<<<<<<<<
- *                         # Se min_val == max_val, e val est entre eles (i.e., val == min_val),
- *                         # mapeamos para 0.0 (conveno).
+ *                         norm_val_double = 0.0
+ *                     else:
  */
                                 /*else*/ {
                                   __pyx_t_7 = (__pyx_v_val_range == 0.0);
                                   if (__pyx_t_7) {
 
-                                    /* "cython_kernels/kernels.pyx":257
- *                         # mapeamos para 0.0 (conveno).
- *                         # Isso evita diviso por zero.
+                                    /* "cython_kernels/kernels.pyx":229
+ *                 else:
+ *                     if val_range == 0:
  *                         norm_val_double = 0.0             # <<<<<<<<<<<<<<
  *                     else:
  *                         norm_val_double = 255.0 * (val_double - min_val_double) / val_range
  */
                                     __pyx_v_norm_val_double = 0.0;
 
-                                    /* "cython_kernels/kernels.pyx":253
+                                    /* "cython_kernels/kernels.pyx":228
  *                     norm_val_double = 255.0
  *                 else:
  *                     if val_range == 0:             # <<<<<<<<<<<<<<
- *                         # Se min_val == max_val, e val est entre eles (i.e., val == min_val),
- *                         # mapeamos para 0.0 (conveno).
+ *                         norm_val_double = 0.0
+ *                     else:
  */
                                     goto __pyx_L20;
                                   }
 
-                                  /* "cython_kernels/kernels.pyx":259
+                                  /* "cython_kernels/kernels.pyx":231
  *                         norm_val_double = 0.0
  *                     else:
  *                         norm_val_double = 255.0 * (val_double - min_val_double) / val_range             # <<<<<<<<<<<<<<
  * 
- *                 # A converso para uint8_t truncar a parte fracionria,
+ *                 out[t, h, w] = <cnp.uint8_t>norm_val_double
  */
                                   /*else*/ {
                                     __pyx_v_norm_val_double = ((255.0 * (__pyx_v_val_double - __pyx_v_min_val_double)) / __pyx_v_val_range);
@@ -8837,9 +8837,9 @@ static PyArrayObject *__pyx_f_14cython_kernels_7kernels_normalize_stack_optimize
                                 }
                                 __pyx_L19:;
 
-                                /* "cython_kernels/kernels.pyx":264
- *                 # que  o comportamento esperado para converso de float para int.
- *                 # A lgica if/elif/else j garante que norm_val_double est entre 0.0 e 255.0.
+                                /* "cython_kernels/kernels.pyx":233
+ *                         norm_val_double = 255.0 * (val_double - min_val_double) / val_range
+ * 
  *                 out[t, h, w] = <cnp.uint8_t>norm_val_double             # <<<<<<<<<<<<<<
  * 
  *     return out
@@ -8863,12 +8863,12 @@ static PyArrayObject *__pyx_f_14cython_kernels_7kernels_normalize_stack_optimize
         #endif
       }
 
-      /* "cython_kernels/kernels.pyx":242
- *     # O schedule='static' geralmente  bom para tarefas onde cada iterao
- *     # tem um custo computacional similar.
+      /* "cython_kernels/kernels.pyx":219
+ *     val_range = max_val_double - min_val_double
+ * 
  *     for t in prange(T, nogil=True, schedule='static'):             # <<<<<<<<<<<<<<
- *         # As variveis h, w, val_double, norm_val_double so locais para cada thread/iterao de t
  *         for h in range(H):
+ *             for w in range(W):
  */
       /*finally:*/ {
         /*normal exit:*/{
@@ -8882,7 +8882,7 @@ static PyArrayObject *__pyx_f_14cython_kernels_7kernels_normalize_stack_optimize
       }
   }
 
-  /* "cython_kernels/kernels.pyx":266
+  /* "cython_kernels/kernels.pyx":235
  *                 out[t, h, w] = <cnp.uint8_t>norm_val_double
  * 
  *     return out             # <<<<<<<<<<<<<<
